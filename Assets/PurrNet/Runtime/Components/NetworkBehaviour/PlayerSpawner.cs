@@ -68,6 +68,16 @@ namespace PurrNet
             _prefabInstantiatedProvider = null;
         }
 
+        public List<Transform> GetSpawnPoints()
+        {
+            return spawnPoints;
+        }
+
+        public GameObject GetPlayerPrefab()
+        {
+            return _playerPrefab;
+        }
+
         private void Awake()
         {
             CleanupSpawnPoints();

@@ -1,7 +1,6 @@
 using UnityEngine;
 
 /// Use as: public class MyManager : Singleton<MyManager> { ... }
-
 [DefaultExecutionOrder(-100)]
 public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {

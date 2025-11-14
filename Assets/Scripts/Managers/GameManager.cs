@@ -1,7 +1,11 @@
-using UnityEngine;
+using PurrNet;
+using PurrNet.Modules;
 using System;
+using System.Collections;
+using Unity.Cinemachine;
+using UnityEngine;
 
-public class GameManager : Singleton<GameManager>
+public class GameManager : NetworkSingleton<GameManager>
 {
     public State_Machine GameStateMachine { get; private set; }
 
@@ -34,15 +38,20 @@ public class GameManager : Singleton<GameManager>
 
         //Initialize Essential UI
         UIManager.Instance.SpawnUIByString("ui-mainmenu");
+        UIManager.Instance.SpawnUIByString("ui-gameplay");
         UIManager.Instance.SpawnUIByString("ui-loading");
         UIManager.Instance.SpawnUIByString("ui-pause");
 
         UIManager.Instance.GetUI("ui-mainmenu").gameObject.SetActive(false);
+        UIManager.Instance.GetUI("ui-gameplay").gameObject.SetActive(false);
         UIManager.Instance.GetUI("ui-loading").gameObject.SetActive(false);
         UIManager.Instance.GetUI("ui-pause").gameObject.SetActive(false);
 
         // Start the game to Authenticate
-        SceneManager.Instance.LoadLevel("MainMenu", EGameState.MainMenu);
+        //SceneManager.Instance.LoadLevel("MainMenu", EGameState.MainMenu);
+        GameStateMachine.ChangeState(EGameState.Gameplay);
+
+
     }
 
     private void Update()
@@ -60,10 +69,10 @@ public class GameManager : Singleton<GameManager>
         IsPaused = true;
 
         // 1. Freeze game time
-        Time.timeScale = 0f;
+        //Time.timeScale = 0f;
 
         // 2. Pause all audio
-        AudioListener.pause = true;
+        //AudioListener.pause = true;
     }
 
     public void ResumeGame()
@@ -71,9 +80,32 @@ public class GameManager : Singleton<GameManager>
         IsPaused = false;
 
         // 1. Restore normal game time
-        Time.timeScale = 1f;
+        //Time.timeScale = 1f;
 
         // 2. Resume all audio
-        AudioListener.pause = false;
+        //AudioListener.pause = false;
     }
+
+
+    // ----- MINE -----
+    [ServerRpc(requireOwnership: false)]
+    public void RequestRespawnPlayer(PlayerID player)
+    {
+        //StartCoroutine(RespawnPlayerRoutine(player));
+    }
+
+    //public IEnumerator RespawnPlayerRoutine(PlayerID player)
+    //{
+    //    Debug.Log("Respawning");
+    //    PlayerSpawner spawner = FindAnyObjectByType<PlayerSpawner>();
+    //    yield return new WaitForSeconds(3);
+
+    //    if (spawner != null)
+    //    {
+    //        //NetworkIdentity playerPrefab = spawner.GetPlayerPrefab();
+    //        Debug.Log("Player Respawned");
+    //        //NetworkIdentity spawnedPlayer = UnityProxy.InstantiateDirectly(playerPrefab, Vector3.zero, Quaternion.identity);
+    //        spawnedPlayer.GiveOwnership(player);
+    //    }
+    //}
 }

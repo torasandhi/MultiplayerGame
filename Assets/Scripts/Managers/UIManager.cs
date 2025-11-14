@@ -40,7 +40,7 @@ public class UIManager : Singleton<UIManager>
     {
         if (GetUI(name)) return;
 
-        Transform temp = (GameObject.Instantiate(GetListUI(name).gameObject, Vector3.zero, Quaternion.identity, transform)).transform;
+        Transform temp = (PurrNet.UnityProxy.InstantiateDirectly(GetListUI(name).gameObject, Vector3.zero, Quaternion.identity, transform)).transform;
 
         UI temp_ui = new UI();
         temp_ui.name = name;
@@ -52,7 +52,7 @@ public class UIManager : Singleton<UIManager>
     {
         if (!GetUI(name)) return;
 
-        Destroy(GetUI(name).gameObject);
+        PurrNet.UnityProxy.Destroy(GetUI(name).gameObject);
         ui_spawn_list.RemoveAt(GetSpawnIndexUI(name));
     }
 }

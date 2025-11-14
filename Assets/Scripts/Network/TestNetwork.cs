@@ -2,37 +2,43 @@ using NUnit.Framework.Internal.Commands;
 using PurrNet;
 using System;
 using System.Collections.Generic;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
-public class TestNetwork : NetworkIdentity
+public class TestNetwork : NetworkBehaviour
 {
-    [SerializeField] private List<TestStruct> _testStruct;
     [SerializeField] private Renderer _renderer;
+    [SerializeField] private List<PlayerID> _players = new();
+    [SerializeField] private int _targetedPlayer = 1;
 
     protected override void OnSpawned()
     {
         base.OnSpawned();
     }
 
+    protected override void OnObserverAdded(PlayerID player)
+    {
+        base.OnObserverAdded(player);
+
+        _players.Add(player);
+    }
+
     private void Update()
     {
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            SetColorObserver(_testStruct[0].color);
-        }
+        if (Input.GetKeyDown(KeyCode.F))
+            SetPauseStateServer();
     }
 
-    [ObserversRpc]
-    private void SetColorObserver(Color color)
+    [TargetRpc]
+    private void SetPauseStateTarget(PlayerID id)
     {
-        _renderer.material.color = color;
+
+        GameManager.Instance.GameStateMachine.ChangeState(EGameState.Paused);
+    }
+
+    [ServerRpc(requireOwnership: false)]
+    private void SetPauseStateServer()
+    {
+        SetPauseStateTarget(_players[_targetedPlayer]);
     }
 }
-
-[Serializable]
-public struct TestStruct
-{
-    public Color color;
-}
-

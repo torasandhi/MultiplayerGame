@@ -54,6 +54,7 @@ public class State_Pause : IState
     {
         GameManager.Instance.GameStateMachine.ChangeState(EGameState.Gameplay);
     }
+
     private void Exit()
     {
         SceneManager.Instance.LoadLevel("MainMenu", EGameState.MainMenu);
