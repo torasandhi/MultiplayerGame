@@ -27,8 +27,6 @@ public class State_Machine
             _currentState = nextState;
             _currentState.OnEnter();
 
-            // This is the crucial line to tell GameManager the state has changed
-            // which will then trigger the PlayerController to swap input maps.
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.TriggerGameStateChange(newState);

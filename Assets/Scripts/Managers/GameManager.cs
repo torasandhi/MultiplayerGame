@@ -1,11 +1,7 @@
-using PurrNet;
-using PurrNet.Modules;
 using System;
-using System.Collections;
-using Unity.Cinemachine;
 using UnityEngine;
 
-public class GameManager : NetworkSingleton<GameManager>
+public class GameManager : Singleton<GameManager>
 {
     public State_Machine GameStateMachine { get; private set; }
 
@@ -25,6 +21,7 @@ public class GameManager : NetworkSingleton<GameManager>
         {
             Debug.LogError("GameManager couldn't find PlayerController.Instance on Awake!");
         }
+
     }
 
     private void Start()
@@ -50,8 +47,6 @@ public class GameManager : NetworkSingleton<GameManager>
         // Start the game to Authenticate
         //SceneManager.Instance.LoadLevel("MainMenu", EGameState.MainMenu);
         GameStateMachine.ChangeState(EGameState.Gameplay);
-
-
     }
 
     private void Update()
@@ -85,27 +80,4 @@ public class GameManager : NetworkSingleton<GameManager>
         // 2. Resume all audio
         //AudioListener.pause = false;
     }
-
-
-    // ----- MINE -----
-    [ServerRpc(requireOwnership: false)]
-    public void RequestRespawnPlayer(PlayerID player)
-    {
-        //StartCoroutine(RespawnPlayerRoutine(player));
-    }
-
-    //public IEnumerator RespawnPlayerRoutine(PlayerID player)
-    //{
-    //    Debug.Log("Respawning");
-    //    PlayerSpawner spawner = FindAnyObjectByType<PlayerSpawner>();
-    //    yield return new WaitForSeconds(3);
-
-    //    if (spawner != null)
-    //    {
-    //        //NetworkIdentity playerPrefab = spawner.GetPlayerPrefab();
-    //        Debug.Log("Player Respawned");
-    //        //NetworkIdentity spawnedPlayer = UnityProxy.InstantiateDirectly(playerPrefab, Vector3.zero, Quaternion.identity);
-    //        spawnedPlayer.GiveOwnership(player);
-    //    }
-    //}
 }

@@ -1,9 +1,10 @@
 using PurrNet;
+using System;
 using System.Collections.Generic;
-using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
 public class Player : NetworkBehaviour, IDamageable
@@ -39,6 +40,8 @@ public class Player : NetworkBehaviour, IDamageable
     private float _xRotation = 0f;
     private bool _jumpInput;
 
+    public Action<Player> OnDeath_Server;
+
     public float Health => health.value;
     public Camera PlayerCamera => playerCamera;
 
@@ -46,7 +49,9 @@ public class Player : NetworkBehaviour, IDamageable
     {
         _controller = GetComponent<CharacterController>();
         _shooter = GetComponent<ProjectileShooter>();
+
     }
+
 
     protected override void OnSpawned()
     {
@@ -56,7 +61,21 @@ public class Player : NetworkBehaviour, IDamageable
         if (playerCamera != null)
             playerCamera.gameObject.SetActive(isOwner);
 
+        // Lock cursor for FPS
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
+        InitializeControls();
+        InitializeRenderer();
+
+        health.onChanged += OnHealthChange;
+
+        if (!isOwner) return;
+        OnHealthChange(health.value);
+    }
+
+    private void InitializeControls()
+    {
         if (PlayerController.Instance == null)
         {
             Debug.LogError("PlayerController singleton not found!");
@@ -75,7 +94,10 @@ public class Player : NetworkBehaviour, IDamageable
             _controls.Player.Jump.performed += OnJumpPerformed;
             _controls.Player.Jump.canceled += OnJumpCanceled;
         }
+    }
 
+    private void InitializeRenderer()
+    {
         foreach (var renderer in renderers)
         {
             if (isOwner)
@@ -93,10 +115,16 @@ public class Player : NetworkBehaviour, IDamageable
         //set layer
         var actualLayer = isOwner ? selfLayer : otherLayer;
         SetLayer(gameObject, actualLayer);
+    }
 
-        // Lock cursor for FPS
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+    private void OnHealthChange(float newHealth)
+    {
+        if (!isOwner) return;
+
+        Transform ui = UIManager.Instance.GetUI("ui-gameplay");
+        Image healthbar = ui.Find("healthbar").gameObject.GetComponent<Image>();
+
+        healthbar.fillAmount = newHealth / 100;
     }
 
     private void SetLayer(GameObject obj, int layer)
@@ -207,19 +235,13 @@ public class Player : NetworkBehaviour, IDamageable
     [ServerRpc(requireOwnership: false)]
     public void IChangeHealth(int amount)
     {
-        TakeDamage(amount);
-    }
-
-    [ObserversRpc]
-    public void TakeDamage(int amount)
-    {
         if (!isServer) return;
         Mathf.Clamp(health.value += amount, 0, 100);
 
         if (health.value <= 0)
         {
+            OnDeath_Server?.Invoke(this);
             Despawn();
-            GameManager.Instance.RequestRespawnPlayer(localPlayer.Value);
         }
     }
 
@@ -240,5 +262,8 @@ public class Player : NetworkBehaviour, IDamageable
             _controls.Player.Jump.performed -= OnJumpPerformed;
             _controls.Player.Jump.canceled -= OnJumpCanceled;
         }
+
+        if (!isOwner) return;
+        health.onChanged -= OnHealthChange;
     }
 }
